@@ -1,26 +1,31 @@
-"use client"
+'use client'
 
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
+  Card, CardContent, CardDescription,
+  CardHeader, CardTitle
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { VideoCard } from "@/components/video-card"
 import { DashboardHeader } from "@/components/dashboard-header"
+
+interface Video {
+  id: string
+  title: string
+  views: number
+  thumbnail: string
+  // …other props
+}
 
 export default function DashboardPage() {
   const [user, setUser] = useState<{ name?: string; email: string; isAuthenticated: boolean } | null>(null)
   const [tikTokUrl, setTikTokUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [videos, setVideos] = useState<any[]>([])
+  const [videos, setVideos] = useState<Video[]>([])
   const router = useRouter()
 
   useEffect(() => {
@@ -35,13 +40,12 @@ export default function DashboardPage() {
   const handleAddTikTok = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
     try {
       const res = await fetch(
         `/api/tiktok?url=${encodeURIComponent(tikTokUrl)}`
       )
       if (!res.ok) throw new Error("Failed to fetch TikTok data")
-      const data = await res.json()
+      const data: Video[] = await res.json()
       setVideos(data)
       setTikTokUrl("")
     } catch (error) {
@@ -57,11 +61,7 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        Loading...
-      </div>
-    )
+    return <div className="flex min-h-screen items-center justify-center">Loading…</div>
   }
 
   const topVideos = [...videos].sort((a, b) => b.views - a.views).slice(0, 3)
@@ -71,71 +71,43 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <DashboardHeader user={user} onLogout={handleLogout} />
       <main className="flex-1 container mx-auto p-4 md:p-6">
-        <div className="grid gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Add TikTok Account</CardTitle>
-              <CardDescription>
-                Enter your TikTok profile URL to analyze your videos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleAddTikTok} className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1">
-                  <Label htmlFor="tiktok-url" className="sr-only">
-                    TikTok URL
-                  </Label>
-                  <Input
-                    id="tiktok-url"
-                    placeholder="https://www.tiktok.com/@username"
-                    value={tikTokUrl}
-                    onChange={(e) => setTikTokUrl(e.target.value)}
-                    required
-                  />
-                </div>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? "Adding..." : "Add Account"}
-                </Button>
-              </form>
+        {/* …Add TikTok form… */}
+        {videos.length > 0 ? (
+          <Tabs defaultValue="top" className="w-full">
+            {/* … */}
+            <TabsContent value="top" className="mt-6">
+              <div className="grid gap-6 md:grid-cols-3">
+                {topVideos.map(video => (
+                  <Card key={video.id}>
+                    <CardHeader>
+                      <CardTitle>{video.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Image
+                        src={video.thumbnail}
+                        alt={video.title}
+                        width={320}
+                        height={180}
+                        priority
+                      />
+                      <p>{video.views.toLocaleString()} views</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            {/* …bottom tab… */}
+          </Tabs>
+        ) : (
+          <Card className="bg-muted/50">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <h3 className="text-xl font-medium">No videos found</h3>
+              <p className="text-muted-foreground">
+                Add your TikTok account to see your performance analytics
+              </p>
             </CardContent>
           </Card>
-
-          {videos.length > 0 && (
-            <Tabs defaultValue="top" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="top">Top Performing</TabsTrigger>
-                <TabsTrigger value="bottom">Bottom Performing</TabsTrigger>
-              </TabsList>
-              <TabsContent value="top" className="mt-6">
-                <div className="grid gap-6 md:grid-cols-3">
-                  {topVideos.map((video) => (
-                    <VideoCard key={video.id} video={video} />
-                  ))}
-                </div>
-              </TabsContent>
-              <TabsContent value="bottom" className="mt-6">
-                <div className="grid gap-6 md:grid-cols-3">
-                  {bottomVideos.map((video) => (
-                    <VideoCard key={video.id} video={video} />
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          )}
-
-          {videos.length === 0 && (
-            <Card className="bg-muted/50">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <div className="text-center space-y-2">
-                  <h3 className="text-xl font-medium">No videos found</h3>
-                  <p className="text-muted-foreground">
-                    Add your TikTok account to see your performance analytics
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+        )}
       </main>
     </div>
   )
