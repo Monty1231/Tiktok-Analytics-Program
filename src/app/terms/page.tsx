@@ -21,7 +21,7 @@ export default function TermsPage() {
           </p>
           <ul className="list-disc list-inside">
             <li>Violates any applicable laws or regulations.</li>
-            <li>Infringe on our or others' rights.</li>
+            <li>Infringe on our or others&apos; rights.</li>
             <li>Transmit harmful or malicious content.</li>
           </ul>
           <h2 className="text-xl font-semibold">2. Account Responsibility</h2>
@@ -36,7 +36,7 @@ export default function TermsPage() {
           </p>
           <h2 className="text-xl font-semibold">4. Disclaimer of Warranties</h2>
           <p>
-            The service is provided "as is" without warranties of any kind, express or
+            The service is provided &quot;as is&quot; without warranties of any kind, express or
             implied.
           </p>
           <h2 className="text-xl font-semibold">5. Limitation of Liability</h2>
