@@ -1,17 +1,20 @@
 "use client"
 
-import type React from "react"
-
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { VideoCard } from "@/components/video-card"
 import { DashboardHeader } from "@/components/dashboard-header"
-import { mockTikTokData } from "@/lib/mock-data"
 
 export default function DashboardPage() {
   const [user, setUser] = useState<{ name?: string; email: string; isAuthenticated: boolean } | null>(null)
@@ -21,7 +24,6 @@ export default function DashboardPage() {
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is authenticated
     const storedUser = localStorage.getItem("user")
     if (storedUser) {
       setUser(JSON.parse(storedUser))
@@ -30,16 +32,23 @@ export default function DashboardPage() {
     }
   }, [router])
 
-  const handleAddTikTok = (e: React.FormEvent) => {
+  const handleAddTikTok = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call to fetch TikTok data
-    setTimeout(() => {
-      setVideos(mockTikTokData)
-      setIsLoading(false)
+    try {
+      const res = await fetch(
+        `/api/tiktok?url=${encodeURIComponent(tikTokUrl)}`
+      )
+      if (!res.ok) throw new Error("Failed to fetch TikTok data")
+      const data = await res.json()
+      setVideos(data)
       setTikTokUrl("")
-    }, 1000)
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const handleLogout = () => {
@@ -48,7 +57,11 @@ export default function DashboardPage() {
   }
 
   if (!user) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        Loading...
+      </div>
+    )
   }
 
   const topVideos = [...videos].sort((a, b) => b.views - a.views).slice(0, 3)
@@ -62,7 +75,9 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Add TikTok Account</CardTitle>
-              <CardDescription>Enter your TikTok profile URL to analyze your videos</CardDescription>
+              <CardDescription>
+                Enter your TikTok profile URL to analyze your videos
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleAddTikTok} className="flex flex-col sm:flex-row gap-4">
@@ -113,7 +128,9 @@ export default function DashboardPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="text-center space-y-2">
                   <h3 className="text-xl font-medium">No videos found</h3>
-                  <p className="text-muted-foreground">Add your TikTok account to see your performance analytics</p>
+                  <p className="text-muted-foreground">
+                    Add your TikTok account to see your performance analytics
+                  </p>
                 </div>
               </CardContent>
             </Card>
